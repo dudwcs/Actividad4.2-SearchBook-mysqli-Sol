@@ -8,10 +8,10 @@
 </head>
 
 <body>
-    <h1>Búsqueda de libros o autores</h1>
+    <h1>Búsqueda de libros</h1>
 
     <form method="GET">
-        <label for="busqueda">Introduzca los términos de búsqueda</label>
+        <label for="busqueda">Introduzca los términos de búsqueda: </label>
         <input type="search" name="busqueda" id="busqueda" required>
         <button type="submit">Buscar</button>
     </form>
@@ -23,7 +23,7 @@ if (isset($_GET["busqueda"])) {
     $terminos_busqueda = $_GET["busqueda"];
     if (trim($terminos_busqueda) !== "") {
 
-        require_once "connection.php";
+        require_once "MyPDO.php";
 
         try {
             $con = new MyPDO();
@@ -45,7 +45,7 @@ if (isset($_GET["busqueda"])) {
             $array = $stmt->fetchAll(PDO::FETCH_NUM);
             if (($array !== false)) {
                 if (!empty($array)) {
-                 
+
                     echo "<ol>";
                     foreach ($array as $fila_array) {
                         // un único valor: el title
@@ -59,6 +59,13 @@ if (isset($_GET["busqueda"])) {
         } catch (Exception $e) {
             echo "<p>Ha ocurrido una excepción: " . $e->getMessage() . "</p>";
         }
+        //Cerramos los recursos
+        $con = null;
+        $stmt = null;
+
+        
+    } else {
+        echo "<p> Introduzca una cadena no vacía </p>";
     }
 }
 
