@@ -29,8 +29,11 @@ if (isset($_GET["busqueda"])) {
             $con = new MyPDO();
 
             //En la bd bookdb no importan mayúsculas/minúsculas porque está usando collation caseinsensitive, pero no está demás que nuestro código no dependa de la collation de la base de datos
-            $stmt = $con->prepare("select title from books where UPPER(title) like ? ");
-            $stmt->bindValue(1, "%" . strtoupper($terminos_busqueda) . "%");
+            $stmt = $con->prepare("select title as resultado from books where UPPER(title) like :busqueda 
+                union 
+                select TRIM(Concat(coalesce(first_name, '') , coalesce(middle_name, ' '), coalesce(last_name, ''))) as resultado from authors where first_name like :busqueda;");
+            $filtro = "%" . strtoupper($terminos_busqueda) . "%";
+            $stmt->bindParam("busqueda", $filtro);
 
             // echo "<pre>";
             // $stmt->debugDumpParams();
@@ -38,23 +41,24 @@ if (isset($_GET["busqueda"])) {
 
             $stmt->execute();
 
-            // echo "<pre>";
-            // $stmt->debugDumpParams();
-            // echo "</pre>";
+            echo "<pre>";
+            $stmt->debugDumpParams();
+            echo "</pre>";
 
-            $array = $stmt->fetchAll(PDO::FETCH_NUM);
-            if (($array !== false)) {
-                if (!empty($array)) {
-
+            $counter = 0;
+            while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+                $counter++;
+                if ($counter == 1) {
                     echo "<ol>";
-                    foreach ($array as $fila_array) {
-                        // un único valor: el title
-                        echo "<li> $fila_array[0] </li>";
-                    }
-                    echo "</ol>";
-                } else {
-                    echo "<p>No se han encontrado resultados</p>";
                 }
+                echo "<li>" . $row["resultado"] . "</li>";
+              
+            }
+            if($counter >0){
+                echo "</ol>";
+            }
+            if ($counter == 0) {
+                echo "<p>No se han encontrado resultados</p>";
             }
         } catch (Exception $e) {
             echo "<p>Ha ocurrido una excepción: " . $e->getMessage() . "</p>";
@@ -62,8 +66,6 @@ if (isset($_GET["busqueda"])) {
         //Cerramos los recursos
         $con = null;
         $stmt = null;
-
-        
     } else {
         echo "<p> Introduzca una cadena no vacía </p>";
     }
