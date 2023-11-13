@@ -29,9 +29,19 @@ if (isset($_GET["busqueda"])) {
             $con = new MyPDO();
 
             //En la bd bookdb no importan mayúsculas/minúsculas porque está usando collation caseinsensitive, pero no está demás que nuestro código no dependa de la collation de la base de datos
-            $stmt = $con->prepare("select title as resultado from books where UPPER(title) like :busqueda 
-                union 
-                select TRIM(Concat(coalesce(first_name, '') , coalesce(middle_name, ' '), coalesce(last_name, ''))) as resultado from authors where first_name like :busqueda;");
+            // $stmt = $con->prepare("select title as resultado from books where UPPER(title) like :busqueda 
+            //     union 
+            //     select TRIM(Concat(coalesce(first_name, '') , coalesce(middle_name, ' '), coalesce(last_name, '')))
+            //      as resultado from authors where first_name like :busqueda;");
+
+            // No tan útil para obtener los resultados y mostrarlos en html:
+            // SELECT title, first_name, middle_name, last_name
+            // FROM books b
+            // LEFT JOIN book_authors ba ON b.book_id = ba.book_id
+            // LEFT JOIN authors a ON ba.author_id = a.author_id
+            // WHERE UPPER(title) like '%a%' OR first_name LIKE '%a%';
+
+            
             $filtro = "%" . strtoupper($terminos_busqueda) . "%";
             $stmt->bindParam("busqueda", $filtro);
 
